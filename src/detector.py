@@ -1,6 +1,22 @@
+import re
+
 from src.sentence_extractor import extract_sentences
 from src.evidence_retriever import retrieve_evidence
 from src.nli_verifier import verify_claim
+
+
+STOP_WORDS = {
+    "the", "is", "a", "an", "and", "or", "of", "in",
+    "on", "at", "to", "for", "it", "was", "are",
+    "were", "be", "this", "that", "with", "by", "as",
+    "located",
+}
+
+
+def get_content_words(text: str) -> set[str]:
+    """Extract meaningful words for a simple relevance check."""
+    words = re.findall(r"\b[a-zA-Z0-9]+\b", text.lower())
+    return {word for word in words if word not in STOP_WORDS}
 
 
 def detect(
@@ -8,12 +24,8 @@ def detect(
     evidence_store: list[str],
     top_k: int = 3,
 ) -> list[dict]:
-    """
-    Analyze an LLM response sentence by sentence.
+    """Analyze an LLM response sentence by sentence."""
 
-    Returns a list of dictionaries containing each claim,
-    its retrieved evidence, NLI scores, and predicted label.
-    """
     if not response_text or not response_text.strip():
         return []
 
@@ -38,9 +50,24 @@ def detect(
             })
             continue
 
-        # Verify against the highest-ranked evidence first.
-        # Verify the claim against the highest-ranked evidence.
         best_evidence = evidence_list[0]
+
+        claim_words = get_content_words(sentence)
+        evidence_words = get_content_words(best_evidence)
+
+        overlap = claim_words & evidence_words
+
+        # Require sufficient lexical overlap before trusting NLI.
+        if not claim_words or len(overlap) < 2:
+            results.append({
+                "claim": sentence,
+                "evidence": evidence_list,
+                "label": "uncertain",
+                "entailment_score": 0.0,
+                "contradiction_score": 0.0,
+                "neutral_score": 1.0,
+            })
+            continue
 
         best_result = verify_claim(
             sentence,
@@ -55,6 +82,7 @@ def detect(
             "contradiction_score": best_result["contradiction_score"],
             "neutral_score": best_result["neutral_score"],
         })
+
     return results
 
 

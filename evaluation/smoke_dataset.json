@@ -1,0 +1,23 @@
+[
+  {
+    "response": "The Eiffel Tower is located in Paris.",
+    "evidence": [
+      "The Eiffel Tower is located in Paris, France."
+    ],
+    "expected_label": "supported"
+  },
+  {
+    "response": "The Eiffel Tower is located in London.",
+    "evidence": [
+      "The Eiffel Tower is located in Paris, France."
+    ],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "The Statue of Liberty is located in New York.",
+    "evidence": [
+      "The Eiffel Tower is located in Paris, France."
+    ],
+    "expected_label": "uncertain"
+  }
+]
