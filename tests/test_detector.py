@@ -36,3 +36,25 @@ def test_detector_returns_expected_fields():
     assert "entailment_score" in result[0]
     assert "contradiction_score" in result[0]
     assert "neutral_score" in result[0]
+
+
+def test_unrelated_evidence_should_not_contradict_claim():
+    result = detect(
+        "The Earth orbits the Sun.",
+        ["The Earth has one natural satellite, the Moon."],
+    )
+
+    assert len(result) == 1
+    assert result[0]["label"] == "uncertain"
+
+
+def test_different_water_facts_should_not_be_contradictory():
+    result = detect(
+        "Water boils at 100 degrees Celsius at standard atmospheric pressure.",
+        [
+            "At standard atmospheric pressure, water freezes at 0 degrees Celsius."
+        ],
+    )
+
+    assert len(result) == 1
+    assert result[0]["label"] == "uncertain"

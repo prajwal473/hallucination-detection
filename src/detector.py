@@ -1,22 +1,35 @@
 import re
-
 from src.sentence_extractor import extract_sentences
-from src.evidence_retriever import retrieve_evidence
+from src.evidence_retriever import retrieve_evidence_with_scores
 from src.nli_verifier import verify_claim
 
+def get_relation_group(text: str) -> str | None:
+    """Identify the main relationship expressed in a sentence."""
 
-STOP_WORDS = {
-    "the", "is", "a", "an", "and", "or", "of", "in",
-    "on", "at", "to", "for", "it", "was", "are",
-    "were", "be", "this", "that", "with", "by", "as",
-    "located",
-}
+    patterns = {
+        "location": r"\b(located in|is in|stands in)\b",
+        "capital": r"\b(capital of)\b",
+        "temperature_freeze": r"\b(freezes|freeze)\b",
+        "temperature_boil": r"\b(boils|boil)\b",
+        "orbit": r"\b(orbits|orbit)\b",
+        "identity": r"\b(known as|called)\b",
+        "sides": r"\b(sides|side)\b",
+        "size": r"\b(larger|largest|smaller|smallest)\b",
+        "completion": r"\b(completed|completion)\b",
+        "authorship": r"\b(wrote|written by|authored|attributed to)\b",
+    }
+
+    text = text.lower()
+
+    for group, pattern in patterns.items():
+        if re.search(pattern, text):
+            return group
+
+    return None
 
 
-def get_content_words(text: str) -> set[str]:
-    """Extract meaningful words for a simple relevance check."""
-    words = re.findall(r"\b[a-zA-Z0-9]+\b", text.lower())
-    return {word for word in words if word not in STOP_WORDS}
+MIN_RELEVANCE_SCORE = 0.40
+MIN_NLI_SCORE = 0.80
 
 
 def detect(
@@ -33,13 +46,19 @@ def detect(
     results = []
 
     for sentence in sentences:
-        evidence_list = retrieve_evidence(
+        retrieved = retrieve_evidence_with_scores(
             sentence,
             evidence_store,
             top_k=top_k,
         )
 
-        if not evidence_list:
+        relevant = [
+            item
+            for item in retrieved
+            if item["similarity_score"] >= MIN_RELEVANCE_SCORE
+        ]
+
+        if not relevant:
             results.append({
                 "claim": sentence,
                 "evidence": [],
@@ -50,37 +69,67 @@ def detect(
             })
             continue
 
-        best_evidence = evidence_list[0]
+        evidence_results = []
 
-        claim_words = get_content_words(sentence)
-        evidence_words = get_content_words(best_evidence)
+        for item in relevant:
+            evidence = item["evidence"]
 
-        overlap = claim_words & evidence_words
+            forward = verify_claim(sentence, evidence)
+            reverse = verify_claim(evidence, sentence)
 
-        # Require sufficient lexical overlap before trusting NLI.
-        if not claim_words or len(overlap) < 2:
-            results.append({
-                "claim": sentence,
-                "evidence": evidence_list,
-                "label": "uncertain",
-                "entailment_score": 0.0,
-                "contradiction_score": 0.0,
-                "neutral_score": 1.0,
+            evidence_results.append({
+                "evidence": evidence,
+                "similarity_score": item["similarity_score"],
+                "forward": forward,
+                "reverse": reverse,
             })
-            continue
 
-        best_result = verify_claim(
-            sentence,
-            best_evidence,
+        # Aggregate scores across retrieved evidence.
+        entailment = max(
+            item["forward"]["entailment_score"]
+            for item in evidence_results
         )
+
+        contradiction = max(
+            item["forward"]["contradiction_score"]
+            for item in evidence_results
+        )
+
+        neutral = max(
+            item["forward"]["neutral_score"]
+            for item in evidence_results
+        )
+
+        strong_support = any(
+            item["forward"]["entailment_score"] >= MIN_NLI_SCORE
+            for item in evidence_results
+        )
+
+        strong_contradiction = any(
+            item["forward"]["contradiction_score"] >= MIN_NLI_SCORE
+            and get_relation_group(sentence) is not None
+            and get_relation_group(sentence)
+            == get_relation_group(item["evidence"])
+            for item in evidence_results
+        )
+
+        if strong_support and not strong_contradiction:
+            label = "supported"
+        elif strong_contradiction and not strong_support:
+            label = "contradicted"
+        else:
+            label = "uncertain"
 
         results.append({
             "claim": sentence,
-            "evidence": evidence_list,
-            "label": best_result["label"],
-            "entailment_score": best_result["entailment_score"],
-            "contradiction_score": best_result["contradiction_score"],
-            "neutral_score": best_result["neutral_score"],
+            "evidence": [
+                item["evidence"]
+                for item in evidence_results
+            ],
+            "label": label,
+            "entailment_score": entailment,
+            "contradiction_score": contradiction,
+            "neutral_score": neutral,
         })
 
     return results
@@ -99,9 +148,10 @@ if __name__ == "__main__":
         "The Eiffel Tower is located in London."
     )
 
-    results = detect(response, evidence_store)
-
-    for index, result in enumerate(results, start=1):
+    for index, result in enumerate(
+        detect(response, evidence_store),
+        start=1,
+    ):
         print(f"\nClaim {index}")
         print("-" * 40)
 

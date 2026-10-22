@@ -1,23 +1,152 @@
 [
   {
     "response": "The Eiffel Tower is located in Paris.",
-    "evidence": [
-      "The Eiffel Tower is located in Paris, France."
-    ],
+    "evidence": ["The Eiffel Tower is located in Paris, France."],
+    "expected_label": "supported"
+  },
+  {
+    "response": "The Eiffel Tower was completed in 1889.",
+    "evidence": ["Construction of the Eiffel Tower was completed in 1889."],
+    "expected_label": "supported"
+  },
+  {
+    "response": "The Statue of Liberty is located in New York Harbor.",
+    "evidence": ["The Statue of Liberty stands in New York Harbor."],
+    "expected_label": "supported"
+  },
+  {
+    "response": "Tokyo is the capital of Japan.",
+    "evidence": ["Tokyo serves as Japan's capital city."],
+    "expected_label": "supported"
+  },
+  {
+    "response": "Water freezes at 0 degrees Celsius under standard atmospheric pressure.",
+    "evidence": ["At standard atmospheric pressure, water freezes at 0 degrees Celsius."],
+    "expected_label": "supported"
+  },
+  {
+    "response": "Mars is known as the Red Planet.",
+    "evidence": ["Mars is commonly called the Red Planet."],
+    "expected_label": "supported"
+  },
+  {
+    "response": "The Pacific Ocean is the largest ocean on Earth.",
+    "evidence": ["The Pacific Ocean is Earth's largest ocean."],
+    "expected_label": "supported"
+  },
+  {
+    "response": "A triangle has three sides.",
+    "evidence": ["A triangle is a polygon with three sides."],
+    "expected_label": "supported"
+  },
+  {
+    "response": "The Earth orbits the Sun.",
+    "evidence": ["Earth travels around the Sun in its orbit."],
+    "expected_label": "supported"
+  },
+  {
+    "response": "Shakespeare wrote Hamlet.",
+    "evidence": ["Hamlet is a tragedy written by William Shakespeare."],
     "expected_label": "supported"
   },
   {
     "response": "The Eiffel Tower is located in London.",
-    "evidence": [
-      "The Eiffel Tower is located in Paris, France."
-    ],
+    "evidence": ["The Eiffel Tower is located in Paris, France."],
     "expected_label": "contradicted"
   },
   {
-    "response": "The Statue of Liberty is located in New York.",
-    "evidence": [
-      "The Eiffel Tower is located in Paris, France."
-    ],
+    "response": "The Statue of Liberty is located in Paris.",
+    "evidence": ["The Statue of Liberty stands in New York Harbor."],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "Tokyo is the capital of China.",
+    "evidence": ["Tokyo is the capital of Japan."],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "Water freezes at 100 degrees Celsius under standard atmospheric pressure.",
+    "evidence": ["Water freezes at 0 degrees Celsius under standard atmospheric pressure."],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "Mars is known as the Blue Planet.",
+    "evidence": ["Mars is commonly called the Red Planet."],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "The Atlantic Ocean is larger than the Pacific Ocean.",
+    "evidence": ["The Pacific Ocean is the largest ocean on Earth."],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "A triangle has four sides.",
+    "evidence": ["A triangle is a polygon with three sides."],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "The Earth orbits Mars.",
+    "evidence": ["Earth travels around the Sun in its orbit."],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "Shakespeare wrote The Odyssey.",
+    "evidence": ["The Odyssey is an ancient Greek epic traditionally attributed to Homer."],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "The Eiffel Tower was completed in 1999.",
+    "evidence": ["Construction of the Eiffel Tower was completed in 1889."],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "The city of Riverton has a population of 500000.",
+    "evidence": ["The Eiffel Tower is located in Paris, France."],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "The Silver River is 900 kilometers long.",
+    "evidence": ["The Statue of Liberty stands in New York Harbor."],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "Professor Maya Rao received an award in 2024.",
+    "evidence": ["Tokyo is the capital of Japan."],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "The Zoravian language has 40 million speakers.",
+    "evidence": ["Mars is commonly called the Red Planet."],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "A company called Northstar Dynamics was founded in 2017.",
+    "evidence": ["Water freezes at 0 degrees Celsius under standard atmospheric pressure."],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "Lake Amber is the deepest lake in the country.",
+    "evidence": ["A triangle is a polygon with three sides."],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "The city of Bellford has 27 railway stations.",
+    "evidence": ["Hamlet is a tragedy written by William Shakespeare."],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "The planet Novera has three moons.",
+    "evidence": ["The Pacific Ocean is Earth's largest ocean."],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "A fictional mineral called velorium melts at 700 degrees Celsius.",
+    "evidence": ["The Statue of Liberty stands in New York Harbor."],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "The village of Greenhaven was established in 1842.",
+    "evidence": ["Earth travels around the Sun in its orbit."],
     "expected_label": "uncertain"
   }
 ]

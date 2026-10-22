@@ -1,69 +1,95 @@
 import json
+import argparse
 from pathlib import Path
+
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+)
 
 from src.detector import detect
 
 
-DATASET_PATH = Path("evaluation/smoke_dataset.json")
+DEFAULT_DATASET_PATH = Path("evaluation/smoke_dataset.json")
+
+LABELS = ["supported", "contradicted", "uncertain"]
 
 
-def evaluate():
-    with DATASET_PATH.open("r", encoding="utf-8") as file:
+def evaluate(dataset_path: Path):
+    with dataset_path.open("r", encoding="utf-8") as file:
         dataset = json.load(file)
 
-    total = 0
-    correct = 0
+    expected_labels = []
+    predicted_labels = []
 
     print("\nHallucination Detection Evaluation")
-    print("=" * 40)
+    print("=" * 45)
 
     for index, sample in enumerate(dataset, start=1):
-        response = sample["response"]
-        evidence = sample["evidence"]
-        expected_label = sample["expected_label"]
-
         results = detect(
-            response_text=response,
-            evidence_store=evidence,
+            response_text=sample["response"],
+            evidence_store=sample["evidence"],
         )
 
         if not results:
             print(f"\nExample {index}: No claims detected")
             continue
 
-        prediction = results[0]["label"]
+        expected = sample["expected_label"]
+        predicted = results[0]["label"]
+
+        expected_labels.append(expected)
+        predicted_labels.append(predicted)
 
         print(f"\nExample {index}")
-        print(f"Response: {response}")
-        print(f"Expected: {expected_label}")
-        print(f"Predicted: {prediction}")
+        print(f"Response: {sample['response']}")
+        print(f"Expected: {expected}")
+        print(f"Predicted: {predicted}")
 
-        print("NLI scores:")
-        print(
-            f"  Entailment: "
-            f"{results[0]['entailment_score']:.4f}"
+        if predicted != expected:
+            print("Result: INCORRECT")
+        else:
+            print("Result: CORRECT")
+
+    if not expected_labels:
+        print("\nNo examples were evaluated.")
+        return
+
+    print("\n" + "=" * 45)
+    print(f"Evaluated examples: {len(expected_labels)}")
+    print(f"Accuracy: {accuracy_score(expected_labels, predicted_labels):.2%}")
+
+    print("\nClassification Report")
+    print(
+        classification_report(
+            expected_labels,
+            predicted_labels,
+            labels=LABELS,
+            zero_division=0,
+            digits=3,
         )
-        print(
-            f"  Contradiction: "
-            f"{results[0]['contradiction_score']:.4f}"
-        )
-        print(
-            f"  Neutral: "
-            f"{results[0]['neutral_score']:.4f}"
-        )
+    )
 
-        is_correct = prediction == expected_label
-        print(f"Correct: {'Yes' if is_correct else 'No'}")
-
-        total += 1
-        correct += int(is_correct)
-
-    accuracy = correct / total if total else 0.0
-
-    print("\n" + "=" * 40)
-    print(f"Correct predictions: {correct}/{total}")
-    print(f"Accuracy: {accuracy:.2%}")
+    print("Confusion Matrix")
+    print("Rows = actual labels; columns = predicted labels")
+    print(f"Label order: {LABELS}")
+    print(confusion_matrix(
+        expected_labels,
+        predicted_labels,
+        labels=LABELS,
+    ))
 
 
 if __name__ == "__main__":
-    evaluate()
+    parser = argparse.ArgumentParser(
+        description="Evaluate the hallucination detector."
+    )
+    parser.add_argument(
+        "--dataset",
+        type=Path,
+        default=DEFAULT_DATASET_PATH,
+        help="Path to the evaluation JSON dataset.",
+    )
+    args = parser.parse_args()
+    evaluate(args.dataset)

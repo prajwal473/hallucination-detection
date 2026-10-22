@@ -1,0 +1,111 @@
+[
+  {
+    "response": "The Eiffel Tower is in Paris and was completed in 1889.",
+    "evidence": [
+      "The Eiffel Tower is located in Paris, France.",
+      "Construction of the Eiffel Tower was completed in 1889."
+    ],
+    "expected_label": "supported"
+  },
+  {
+    "response": "The Eiffel Tower is in Paris and was completed in 1999.",
+    "evidence": [
+      "The Eiffel Tower is located in Paris, France.",
+      "Construction of the Eiffel Tower was completed in 1889."
+    ],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "The Eiffel Tower is in Paris.",
+    "evidence": [
+      "The Eiffel Tower was completed in 1889."
+    ],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "The automobile was manufactured in Japan.",
+    "evidence": [
+      "This vehicle was built in Japan."
+    ],
+    "expected_label": "supported"
+  },
+  {
+    "response": "The automobile was manufactured in Japan.",
+    "evidence": [
+      "This vehicle was built in Germany."
+    ],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "Water boils at 100 degrees Celsius at standard atmospheric pressure.",
+    "evidence": [
+      "At standard atmospheric pressure, water boils at 100 degrees Celsius."
+    ],
+    "expected_label": "supported"
+  },
+  {
+    "response": "Water boils at 100 degrees Celsius at standard atmospheric pressure.",
+    "evidence": [
+      "At standard atmospheric pressure, water freezes at 0 degrees Celsius."
+    ],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "Tokyo is the capital of Japan and has a population of exactly 100 million.",
+    "evidence": [
+      "Tokyo is the capital of Japan."
+    ],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "The Pacific Ocean is the largest ocean on Earth.",
+    "evidence": [
+      "The Pacific Ocean is larger than the Atlantic Ocean."
+    ],
+    "expected_label": "supported"
+  },
+  {
+    "response": "The Pacific Ocean is the smallest ocean on Earth.",
+    "evidence": [
+      "The Pacific Ocean is the largest ocean on Earth."
+    ],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "The Statue of Liberty is in New York Harbor.",
+    "evidence": [
+      "The Eiffel Tower is located in Paris, France."
+    ],
+    "expected_label": "uncertain"
+  },
+  {
+    "response": "Mars is known as the Red Planet.",
+    "evidence": [
+      "Mars is commonly called the Red Planet.",
+      "Mars is the fourth planet from the Sun."
+    ],
+    "expected_label": "supported"
+  },
+  {
+    "response": "Mars is known as the Blue Planet.",
+    "evidence": [
+      "Mars is commonly called the Red Planet.",
+      "Mars is the fourth planet from the Sun."
+    ],
+    "expected_label": "contradicted"
+  },
+  {
+    "response": "Shakespeare wrote Hamlet.",
+    "evidence": [
+      "Hamlet is a tragedy written by William Shakespeare."
+    ],
+    "expected_label": "supported"
+  },
+  {
+    "response": "Shakespeare wrote Hamlet in 1600.",
+    "evidence": [
+      "Hamlet is a tragedy written by William Shakespeare."
+    ],
+    "expected_label": "uncertain"
+  }
+]

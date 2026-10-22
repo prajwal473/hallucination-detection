@@ -1,69 +1,107 @@
-import re
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
+MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+
+_embedding_model = None
 
 
-def retrieve_evidence(claim: str, evidence_store: list[str], top_k: int = 3) -> list[str]:
+def load_embedding_model():
+    """Load the embedding model once and reuse it."""
+    global _embedding_model
+
+    if _embedding_model is None:
+        _embedding_model = SentenceTransformer(MODEL_NAME)
+
+    return _embedding_model
+
+
+def retrieve_evidence_with_scores(
+    claim: str,
+    evidence_store: list[str],
+    top_k: int = 3,
+) -> list[dict]:
     """
-    Retrieve evidence sentences that share words with a claim.
+    Retrieve evidence ranked by semantic similarity.
 
-    Args:
-        claim: The sentence we want to verify.
-        evidence_store: A list of known evidence sentences.
-        top_k: Maximum number of evidence sentences to return.
-
-    Returns:
-        The most relevant evidence sentences.
+    Returns a list of dictionaries containing evidence text
+    and its cosine similarity score.
     """
-    if not claim or not claim.strip() or not evidence_store or top_k <= 0:
+    if not claim or not claim.strip():
         return []
 
-    stop_words = {
-        "the", "is", "a", "an", "and", "or", "of", "in", "on",
-        "at", "to", "for", "it", "was", "are", "were", "be",
-        "this", "that", "with", "by", "as"
-    }
-
-    def tokenize(text: str) -> set[str]:
-        words = re.findall(r"\b[a-zA-Z0-9]+\b", text.lower())
-        return {word for word in words if word not in stop_words}
-
-    claim_words = tokenize(claim)
-
-    if not claim_words:
+    if not evidence_store or top_k <= 0:
         return []
 
-    scored_evidence = []
+    evidence_store = [
+        evidence.strip()
+        for evidence in evidence_store
+        if evidence and evidence.strip()
+    ]
 
-    for evidence in evidence_store:
-        evidence_words = tokenize(evidence)
+    if not evidence_store:
+        return []
 
-        if not evidence_words:
-            continue
+    model = load_embedding_model()
 
-        overlap = len(claim_words & evidence_words)
-        score = overlap / len(claim_words)
+    claim_embedding = model.encode([claim])
+    evidence_embeddings = model.encode(evidence_store)
 
-        if overlap > 0:
-            scored_evidence.append((score, evidence))
+    similarities = cosine_similarity(
+        claim_embedding,
+        evidence_embeddings,
+    )[0]
 
-    scored_evidence.sort(key=lambda item: item[0], reverse=True)
+    ranked_indices = similarities.argsort()[::-1][:top_k]
 
-    return [evidence for _, evidence in scored_evidence[:top_k]]
+    return [
+        {
+            "evidence": evidence_store[index],
+            "similarity_score": float(similarities[index]),
+        }
+        for index in ranked_indices
+    ]
+
+
+def retrieve_evidence(
+    claim: str,
+    evidence_store: list[str],
+    top_k: int = 3,
+) -> list[str]:
+    """
+    Preserve the original interface by returning evidence text only.
+    """
+    results = retrieve_evidence_with_scores(
+        claim,
+        evidence_store,
+        top_k,
+    )
+
+    return [item["evidence"] for item in results]
 
 
 if __name__ == "__main__":
     evidence_store = [
-        "The Eiffel Tower is located in Paris, France.",
-        "The Statue of Liberty is located in New York Harbor.",
+        "Paris, France, is home to the famous Eiffel Tower.",
+        "The Statue of Liberty stands in New York Harbor.",
         "The Eiffel Tower was completed in 1889.",
         "London is the capital of the United Kingdom.",
     ]
 
-    claim = "The Eiffel Tower is located in London."
+    claim = "The Eiffel Tower is located in Paris."
 
-    results = retrieve_evidence(claim, evidence_store, top_k=3)
+    results = retrieve_evidence_with_scores(
+        claim,
+        evidence_store,
+        top_k=3,
+    )
 
     print(f"Claim: {claim}")
-    print("\nRetrieved evidence:")
+    print("\nRetrieved evidence with similarity scores:")
 
-    for index, evidence in enumerate(results, start=1):
-        print(f"{index}. {evidence}")
+    for index, result in enumerate(results, start=1):
+        print(
+            f"{index}. Similarity: "
+            f"{result['similarity_score']:.4f} | "
+            f"{result['evidence']}"
+        )

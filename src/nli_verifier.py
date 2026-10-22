@@ -2,6 +2,9 @@ from transformers import pipeline
 
 MODEL_NAME = "cross-encoder/nli-deberta-v3-small"
 
+# Initial experimental threshold. Validate against evaluation datasets.
+MIN_NLI_CONFIDENCE = 0.80
+
 _nli_pipeline = None
 
 
@@ -24,6 +27,9 @@ def verify_claim(claim: str, evidence: str) -> dict:
     """
     Estimate whether evidence supports, contradicts, or is neutral
     toward a claim.
+
+    Return uncertain when the highest NLI score is below the
+    experimental confidence threshold.
     """
     if not claim or not claim.strip():
         raise ValueError("Claim must not be empty.")
@@ -41,8 +47,11 @@ def verify_claim(claim: str, evidence: str) -> dict:
         }
     )
 
-    # Normalize the output into a list of label/score dictionaries.
-    predictions = result[0] if result and isinstance(result[0], list) else result
+    predictions = (
+        result[0]
+        if result and isinstance(result[0], list)
+        else result
+    )
 
     scores = {
         item["label"].lower(): float(item["score"])
@@ -60,6 +69,11 @@ def verify_claim(claim: str, evidence: str) -> dict:
     }
 
     predicted_label = max(label_scores, key=label_scores.get)
+    confidence = label_scores[predicted_label]
+
+    # Low-confidence predictions are treated as uncertain.
+    if confidence < MIN_NLI_CONFIDENCE:
+        predicted_label = "uncertain"
 
     return {
         "claim": claim,
